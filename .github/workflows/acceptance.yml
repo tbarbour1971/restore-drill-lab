@@ -1,0 +1,16 @@
+name: Restore acceptance
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  synthetic-restore:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Check SQLite contract and transport bounds
+        run: python3 -m unittest -v
+      - name: Fetch checksum-pinned upstream tools
+        run: bash scripts/fetch-test-engines.sh "$RUNNER_TEMP/restore-drill-bin"
+      - name: Restore both fixtures from both engines
+        run: PATH="$RUNNER_TEMP/restore-drill-bin:$PATH" python3 drill_e2e.py
