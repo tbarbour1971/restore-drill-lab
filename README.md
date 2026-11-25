@@ -40,7 +40,16 @@ repository is used by the harness. The GitHub Actions workflow downloads
 checksum-pinned Linux amd64 binaries to runner scratch and runs the same command.
 
 The standalone SQLite checks and subprocess byte/time bounds passed locally.
-The end-to-end test has not yet run in a runner with both upstream binaries.
+[Verified GitHub Actions run](https://github.com/tbarbour1971/restore-drill-lab/actions/runs/45646877629): Ubuntu 24.04, Restic 0.20.0, Kopia 0.23.1.
+
+| Restored fixture | Restic | Kopia |
+| --- | --- | --- |
+| Required table present with a row | Exit 0 | Exit 0 |
+| Valid SQLite file missing the required table | Exit 1 (`required_table_missing`) | Exit 1 (`required_table_missing`) |
+
+This tests local, synthetic repositories only. It does not establish production
+readiness, validate remote backends, or prove the rest of a snapshot is usable.
+
 The CLI only reads explicitly selected artifacts, caps temporary output at 64 MiB,
 and stops the recovery subprocess after 60 seconds. The byte cap is not a
 network-traffic guarantee. Use a closed, self-contained SQLite file; the drill
