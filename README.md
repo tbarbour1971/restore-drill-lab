@@ -55,6 +55,32 @@ and stops the recovery subprocess after 60 seconds. The byte cap is not a
 network-traffic guarantee. Use a closed, self-contained SQLite file; the drill
 does not capture a live database or replay its WAL.
 
+## PostgreSQL restore drill
+
+A readable archive and a successful restore do not prove that the right data
+came back. Run the three-case demo with Python 3.11+ and the PostgreSQL server
+and client tools on PATH (verified on PostgreSQL 17.10 on Windows):
+
+    python postgres_drill.py
+
+If PostgreSQL is not on PATH, pass `--bin-dir` with its bin directory. Run as an
+ordinary user, not root. The demo creates a password-protected temporary cluster
+on loopback and does not use an existing PostgreSQL service or database.
+
+| Synthetic backup | Restore exit | Orders recovered | Latest order vs. source checkpoint | Matches source |
+| --- | --- | ---: | --- | --- |
+| Complete | 0 | 120 of 120 | No gap | Yes |
+| Stale | 0 | 105 of 120 | 15 minutes behind | No |
+| Incomplete | 0 | 0 of 120 | No orders to measure | No |
+
+All three archives were readable; even the incomplete one recovered both table
+definitions and the settings row. The check compares counts, order timestamps,
+totals, and a digest of the ordered data. The demo exits zero when it observes
+all three expected outcomes, not because every backup passed verification.
+Timings include creating the restore database, restoring it, and checking its
+contents. They are not production recovery estimates. This demo uses PostgreSQL's
+native logical dump and restore, not the SQLite Restic/Kopia workflow above.
+
 ## Prior art
 
 - [restic-verify](https://github.com/Mariomarquezt/restic-verify): Restic restore and application checks.
